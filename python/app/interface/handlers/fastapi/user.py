@@ -66,7 +66,8 @@ def build_user_router(user_usecase: UserUsecase, jwt_auth: JWTAuth) -> APIRouter
             raise APIError(401, REFRESH_TOKEN_ERROR, str(exc)) from exc
 
     # GET is the REST-correct verb; POST is kept for parity with the Go routes
-    @router.api_route("/profile", methods=["GET", "POST"])
+    @router.get("/profile", operation_id="get_user_profile")
+    @router.post("/profile", operation_id="post_user_profile")
     def get_user_profile(auth: Annotated[AuthContext, Depends(jwt_auth)]) -> UserEntity:
         return auth.user
 
