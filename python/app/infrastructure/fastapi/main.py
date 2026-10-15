@@ -4,15 +4,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config.settings import Settings, get_settings
+from app.infrastructure.container import Container, build_container
+from app.interface.handlers.fastapi.dependencies import build_jwt_auth
 from app.interface.handlers.fastapi.monitor import build_monitor_router
 from app.interface.handlers.fastapi.response import APIError, error_response
+from app.interface.handlers.fastapi.user import build_user_router
 
 ROUTER_CHECK_ERROR = "middleware-001"
 PARAMS_CHECK_ERROR = "middleware-003"
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, container: Container | None = None) -> FastAPI:
     settings = settings or get_settings()
+    container = container or build_container(settings)
 
     app = FastAPI(title=settings.name, version=settings.version)
 
@@ -20,12 +24,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["GET", "POST", "HEAD", "PUT", "DELETE", "PATCH"],
+        allow_headers=["Authorization", "Content-Type"],
         allow_credentials=False,
     )
 
     register_exception_handlers(app)
 
+    jwt_auth = build_jwt_auth(container.user_usecase)
     app.include_router(build_monitor_router(settings), prefix="/api/v1")
+    app.include_router(build_user_router(container.user_usecase, jwt_auth), prefix="/api/v1")
 
     return app
 
