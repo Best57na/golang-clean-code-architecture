@@ -7,7 +7,7 @@ the same error format, built with **FastAPI, SQLAlchemy 2.0, Pydantic v2, PyJWT,
 Features:
 - JWT authentication: register, login, refresh token, logout, profile.
 - Generic read-only CRUD API over PostgreSQL tables and MongoDB collections.
-- 68 automated tests (unit, integration, API).
+- 69 automated tests (unit, integration, API).
 
 ---
 
@@ -160,7 +160,7 @@ Go paths refer to the [original repository](https://github.com/max38/golang-clea
 |---|---|---|
 | 1 | Refresh token uses `GOAPP_JWT_ACCESS_EXPIRES` | Uses its own `PYAPP_JWT_REFRESH_EXPIRES` |
 | 2 | Issuer: result of `strings.Replace` is discarded | Spaces are replaced with `-` |
-| 3 | Login errors differ for unknown email vs wrong password (email enumeration) | One message: `email or password is invalid` |
+| 3 | Login errors differ for unknown email vs wrong password (email enumeration) | One message, `email or password is invalid`, and bcrypt runs in both cases so response time does not reveal the email either |
 | 4 | `domain` imports `usecases`; `usecases/crud` imports `interface/repositories` | Dependencies point inward only; CRUD gets a repository **factory** via a Protocol |
 | 5 | Any logged-in user can read every table through `/data`, including `user_tokens` | Requires `admin` permission; `user_tokens` not exposed; `password` hidden from data, filters and schema |
 | 6 | List `total_data` = rows on the current page | Real `COUNT(*)` of all matching rows |
