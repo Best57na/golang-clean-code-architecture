@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     secret_key: SecretStr
     jwt_access_expires: int = 86400
     jwt_refresh_expires: int = 172800
+    bcrypt_rounds: int = 10
 
     @property
     def sqlalchemy_url(self) -> str:
