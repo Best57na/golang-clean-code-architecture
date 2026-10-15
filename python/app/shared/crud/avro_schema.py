@@ -15,13 +15,16 @@ _AVRO_TYPES: list[tuple[type, str]] = [
 ]
 
 
-def avro_type(python_type: Any) -> str:
-    # Optional[X] / X | None -> X
+def unwrap_type(python_type: Any) -> Any:
+    """Optional[X] / X | None -> X, list[X] -> list."""
     if get_origin(python_type) in (Union, types.UnionType):
         non_null = [arg for arg in get_args(python_type) if arg is not type(None)]
         python_type = non_null[0] if len(non_null) == 1 else object
-    python_type = get_origin(python_type) or python_type
+    return get_origin(python_type) or python_type
 
+
+def avro_type(python_type: Any) -> str:
+    python_type = unwrap_type(python_type)
     for candidate, name in _AVRO_TYPES:
         if isinstance(python_type, type) and issubclass(python_type, candidate):
             return name

@@ -1,12 +1,6 @@
-from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel
-
-
-class Datasource(StrEnum):
-    POSTGRESQL = "postgresql"
-    MONGODB = "mongodb"
 
 
 class DataResponse(BaseModel):
