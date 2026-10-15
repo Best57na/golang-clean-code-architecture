@@ -1,40 +1,19 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.log
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
 
-# Test binary, built with `go test -c`
-*.test
-*.tmp
+# Environment
+.env
+.env.*
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# IDE files
+# IDE
 .vscode
-.DS_Store
 .idea
-
-# Misc
-*.fiber.gz
-*.fasthttp.gz
-*.pprof
-*.workspace
-
-# Dependencies
-/vendor/
-vendor/
-vendor
-/Godeps/
-/assets
-
-# Customs
-*.env*
-.air*
-/tmp
-*.pem
-apikey.txt
-*.txt
+.DS_Store
