@@ -1,3 +1,5 @@
+> **Python version:** a FastAPI port of this template is in [`python/`](python/README.md).
+
 ## Golang Clean Code Architecture Template
 
 Go (Golang) Clean Architecture based on Reading Uncle Bob's Clean Architecture. This code using GoFiber, GORM and User registerm authentication feature.
