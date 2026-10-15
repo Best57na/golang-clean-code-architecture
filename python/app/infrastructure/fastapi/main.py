@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config.settings import Settings, get_settings
 from app.infrastructure.container import Container, build_container
+from app.interface.handlers.fastapi.crud import build_crud_router
 from app.interface.handlers.fastapi.dependencies import build_jwt_auth
 from app.interface.handlers.fastapi.monitor import build_monitor_router
 from app.interface.handlers.fastapi.response import APIError, error_response
@@ -33,6 +34,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     jwt_auth = build_jwt_auth(container.user_usecase)
     app.include_router(build_monitor_router(settings), prefix="/api/v1")
     app.include_router(build_user_router(container.user_usecase, jwt_auth), prefix="/api/v1")
+    app.include_router(build_crud_router(container.crud_usecase, jwt_auth), prefix="/api/v1")
 
     return app
 

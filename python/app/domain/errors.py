@@ -16,3 +16,11 @@ class InvalidTokenError(DomainError):
 
 class NotFoundError(DomainError):
     pass
+
+
+class PermissionDeniedError(DomainError):
+    pass
+
+
+class InvalidFilterError(DomainError):
+    pass
