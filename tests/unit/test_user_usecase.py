@@ -80,6 +80,27 @@ def test_login_uses_same_error_for_unknown_email_and_wrong_password(usecase, reg
     assert str(wrong_password.value) == str(unknown_email.value)
 
 
+class CountingHasher(BcryptPasswordHasher):
+    def __init__(self):
+        super().__init__(rounds=4)
+        self.verify_calls = 0
+
+    def verify(self, password: str, password_hash: str) -> bool:
+        self.verify_calls += 1
+        return super().verify(password, password_hash)
+
+
+def test_login_with_unknown_email_still_runs_bcrypt(repository, tokens):
+    hasher = CountingHasher()
+    usecase = UserUsecase(repository, hasher, tokens)
+
+    with pytest.raises(InvalidCredentialsError):
+        usecase.user_login(UserLoginRequest(email="nobody@example.com", password=PASSWORD))
+
+    # Same work as a wrong password, so response time does not reveal the email exists
+    assert hasher.verify_calls == 1
+
+
 def test_authentication_returns_user_and_permission(usecase, repository, registered):
     repository.permissions[registered.id] = UserPermissionEntity(
         id=1, user_id=registered.id, permission="admin"

@@ -27,6 +27,8 @@ class UserUsecase:
         self._users = user_repository
         self._hasher = password_hasher
         self._tokens = token_service
+        # Verified against when the email is unknown, so both login failures take as long
+        self._dummy_password_hash = password_hasher.hash("dummy-password-for-timing")
 
     def register_user(self, request: UserRegisterRequest) -> UserEntity:
         return self._users.insert_user(
@@ -38,10 +40,11 @@ class UserUsecase:
 
     def user_login(self, request: UserLoginRequest) -> UserLoginResponse:
         credential = self._users.get_credential_by_email(request.email)
-        # Same error for unknown email and wrong password so emails cannot be enumerated
-        if credential is None or not self._hasher.verify(
-            request.password, credential.password_hash
-        ):
+        # Same error and same bcrypt cost for unknown email and wrong password,
+        # so emails cannot be enumerated by message or response time
+        password_hash = credential.password_hash if credential else self._dummy_password_hash
+        password_matches = self._hasher.verify(request.password, password_hash)
+        if credential is None or not password_matches:
             raise InvalidCredentialsError("email or password is invalid")
 
         return self._issue_tokens(credential.user)
