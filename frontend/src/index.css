@@ -326,7 +326,7 @@ a:focus-visible {
 .filters {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   align-items: end;
   padding: 16px;
   margin-bottom: 16px;

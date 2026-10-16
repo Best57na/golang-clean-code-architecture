@@ -163,7 +163,8 @@ function DataBrowser({ slug }: { slug: string }) {
       {result && (
         <div className="pagination">
           <span className="muted">
-            {result.total_data} rows · page {result.page} of {Math.max(result.total_page, 1)}
+            {result.total_data} {result.total_data === 1 ? 'row' : 'rows'} · page {result.page} of{' '}
+            {Math.max(result.total_page, 1)}
           </span>
           <div className="pagination-controls">
             <label className="inline-field">
