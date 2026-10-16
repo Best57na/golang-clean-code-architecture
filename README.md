@@ -7,26 +7,30 @@ the same error format, built with **FastAPI, SQLAlchemy 2.0, Pydantic v2, PyJWT,
 Features:
 - JWT authentication: register, login, refresh token, logout, profile.
 - Generic read-only CRUD API over PostgreSQL tables and MongoDB collections.
-- 69 automated tests (unit, integration, API).
+- React + TypeScript frontend that uses every endpoint (see [Frontend](#frontend)).
+- 69 backend tests (unit, integration, API), 9 frontend unit tests and 3 browser end-to-end tests.
 
 ---
 
 ## Quick start
 
-### Option A: Docker Compose (API + PostgreSQL + MongoDB)
+### Option A: Docker Compose (frontend + API + PostgreSQL + MongoDB)
 
 ```bash
 docker compose up --build
 ```
 
-Open http://localhost:3000/docs for the interactive Swagger UI.
+- Web app: http://localhost:8080
+- Swagger UI: http://localhost:3000/docs
 
-If PostgreSQL, MongoDB or port 3000 is already used on your machine, change the host ports.
-The API reaches the databases over the compose network, so it is not affected:
+If a port is already used on your machine (for example a local PostgreSQL or MongoDB), change
+the host port. Services reach each other over the compose network, so they are not affected:
 
 ```bash
 POSTGRES_HOST_PORT=15432 MONGODB_HOST_PORT=27018 docker compose up --build
 ```
+
+Other overrides: `API_HOST_PORT` (default 3000) and `FRONTEND_HOST_PORT` (default 8080).
 
 ### Option B: Run locally
 
@@ -78,6 +82,63 @@ Grant a user access to the CRUD API:
 ```sql
 INSERT INTO user_permissions (user_id, permission, updated_at) VALUES (1, 'admin', now());
 ```
+
+---
+
+## Frontend
+
+A React 19 + TypeScript app in [frontend/](frontend/), built with Vite and served by nginx in Docker.
+
+| Page | Endpoints used |
+|---|---|
+| Register | `POST /users/register`, then `POST /users/login` |
+| Log in | `POST /users/login` (shows the API message and trace id on error) |
+| Profile | `GET /users/profile` |
+| Data browser | `GET /data/{slug}/describe` for filter inputs, `GET /data/{slug}` for the paginated table, `GET /data/{slug}/{id}` for row detail |
+| Log out | `POST /users/logout` |
+
+When the API answers `401`, the client calls `POST /users/refresh-token` once and retries the request.
+If the account has no admin permission, the data browser shows the command to grant it.
+
+![Data browser](docs/screenshots/data-browser.png)
+
+<p>
+  <img src="docs/screenshots/login-error.png" alt="Login error with trace id" width="58%">
+  <img src="docs/screenshots/profile-mobile-dark.png" alt="Profile on a phone in dark mode" width="24%">
+</p>
+
+### Run and test
+
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173, proxies /api to http://localhost:3000
+
+npm run typecheck && npm run lint && npm test
+
+# End-to-end, against the running compose stack (http://localhost:8080)
+npx playwright install chromium   # or reuse an installed browser: PW_CHANNEL=msedge / chrome
+npm run test:e2e
+```
+
+### Structure and decisions
+
+| Folder | Contains |
+|---|---|
+| `src/api` | `client.ts` (fetch wrapper, token refresh, `ApiError`), `endpoints.ts`, `types.ts` mirroring the Pydantic models |
+| `src/auth` | Auth context, `useAuth`, `RequireAuth` route guard |
+| `src/pages` | Login, Register, Profile, Data browser |
+| `src/components` | Layout, form field, error banner |
+
+- **Same origin through nginx.** nginx serves the app and proxies `/api/` to the API service
+  (Vite does the same in development), so the browser never makes a cross-origin call.
+- **One refresh for parallel requests.** If several requests get `401` at once, they wait on
+  the same refresh call instead of each rotating the tokens. Rotating twice would revoke the
+  token the other request just received.
+- **Tokens in `localStorage`.** A reload keeps the user logged in. The trade-off is that any script
+  on the page can read them. An httpOnly cookie is safer but needs backend changes (listed in next steps).
+- **API clients are factories.** `createApiClient` takes `fetch` and token storage as parameters,
+  the same dependency injection idea as the backend, so the tests need no browser.
 
 ---
 
@@ -183,3 +244,5 @@ Go paths refer to the [original repository](https://github.com/max38/golang-clea
 - CRUD create/update/delete (still stubs in the Go template).
 - Store one row per session in `user_tokens` to allow multiple devices per user.
 - Rate limiting on `/users/login`.
+- An endpoint that lists registered CRUD models, so the frontend does not hardcode them.
+- httpOnly cookie for the refresh token instead of `localStorage`.
