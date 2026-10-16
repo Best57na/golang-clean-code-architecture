@@ -21,6 +21,13 @@ docker compose up --build
 
 Open http://localhost:3000/docs for the interactive Swagger UI.
 
+If PostgreSQL, MongoDB or port 3000 is already used on your machine, change the host ports.
+The API reaches the databases over the compose network, so it is not affected:
+
+```bash
+POSTGRES_HOST_PORT=15432 MONGODB_HOST_PORT=27018 docker compose up --build
+```
+
 ### Option B: Run locally
 
 ```bash
@@ -30,6 +37,7 @@ pip install -e ".[dev]"
 cp env.template .env              # then set PYAPP_SECRET_KEY
 
 docker compose up -d db mongodb   # or use your own PostgreSQL / MongoDB
+                                  # (if you changed host ports, update PYAPP_POSTGRES_DB_PORT / PYAPP_MONGODB_URI in .env)
 python -m app.infrastructure.database.postgres.migration
 python -m app.infrastructure.fastapi.main
 ```
