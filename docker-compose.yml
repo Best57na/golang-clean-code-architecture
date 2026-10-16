@@ -17,6 +17,13 @@ services:
       mongodb:
         condition: service_started
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_HOST_PORT:-8080}:80"
+    depends_on:
+      - api
+
   db:
     image: postgres:15
     environment:
